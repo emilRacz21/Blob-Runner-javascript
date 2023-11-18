@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>GRA</title>
+    <style>
+        @font-face{
+        font-family: 'pixel';
+        src: url(fonts/font1.ttf);
+        }
+        .gradient{
+        background-image: linear-gradient(to right, #ff0000, #00ff00);
+        -webkit-background-clip: text; /* Dla przeglądarek opartych na silniku WebKit */
+        -moz-background-clip: text; /* Dla przeglądarek opartych na silniku Gecko */
+        background-clip: text;
+        color: transparent;
+        }
+        html, body {
+        background-color: #979c97;
+        height: 100%;
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-image: linear-gradient(to right, #289cd3, #1e31ac);
+        -webkit-background-clip: text; /* Dla przeglądarek opartych na silniku WebKit */
+        -moz-background-clip: text; /* Dla przeglądarek opartych na silniku Gecko */
+        background-clip: text;
+        color: transparent;
+        }
+       .reset-button {
+        position: absolute;
+        left: 50%;
+        top: 55%;
+        transform: translate(-50%, -50%);
+        background-color: #575b57; /* Kolor tła przycisku */
+        font-family: pixel;
+        font-size: 40px;
+        color: white; /* Kolor tekstu przycisku */
+        border-radius: 5px;
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        }
+    
+        .reset-button:hover {
+        background-color: #979c97; /* Kolor tła przycisku po najechaniu */
+        }
+        canvas{
+            border: 3px solid black;
+        }
+    
+    </style>
+</head>
+<body>
+<canvas width="1200" height="675" id="plotno1"></canvas>
+<script>
+
+class AnimationFrame { constructor( fps = 60, animate ) { this.requestID = 0; this.fps = fps; this.animate = animate; } start() { let then = performance.now(); const interval = 1000 / this.fps; const tolerance = 0.1; const animateLoop = now => { this.requestID = requestAnimationFrame( animateLoop ); const delta = now - then; if ( delta >= interval - tolerance ) { then = now - ( delta % interval ); this.animate( delta ); } }; this.requestID = requestAnimationFrame( animateLoop ); } stop() { cancelAnimationFrame( this.requestID ); } }     
+var canvas = document.getElementById("plotno1"),
+ctx = canvas.getContext("2d");    
+let energia11 = 4000;   
+tlo1 = new Image();
+tlo1.src = "tla/11.png";
+tlo2 = new Image();
+tlo2.src = "tla/12.png";
+tlo3 = new Image();
+tlo3.src = "tla/13.png";
+tlo4 = new Image();
+tlo4.src = "tla/14.png";
+tlo5 = new Image();
+tlo5.src = "tla/15.png";
+
+bohaterP = new Image();
+bohaterP.src = "1.png";
+bohaterL = new Image();
+bohaterL.src = "2.png";
+blobL = new Image();
+blobL.src = "blobKL.png";
+blobP = new Image();
+blobP.src = "blobKP.png";    
+blobD = new Image();
+blobD.src = "blobG.png";  
+
+let i = 0;
+blobTablica=[];  
+
+
+
+postac={    
+    ile: 8,
+    nr: 0,
+    x: 0,
+    y:0,
+    kierunek: bohaterP,
+    szerokosc: 109,
+    wysokosc: 120,
+    szybkosc: 15,
+    skok: 0,
+    wysokoscSkoku: 20,
+    pulapSkoku:100,
+    energia: 200,
+    spadekEnergia: 1
+}
+tlo={
+    x:0
+}    
+var tla=[
+    tlo1,
+    tlo2,
+    tlo3,
+    tlo4,
+    tlo5
+];
+
+gra={
+    poziom: 1,
+    blobow: 1,
+    generuj: 1,
+    punkty: 0
+}    
+
+function generujBloby(ile) {    
+    for (a=0; a<ile; a++) {
+        blob={
+        ilePoziomo: 6,
+        nr: 0,
+        kierunek: blobP,
+        y: 0,
+        x: 0,
+        predkosc: 5,
+        szerokosc: 61,
+        wysokosc: 56,
+        kill: 0
+        }       
+        blobTablica[a]=blob;
+    }       
+}
+    
+function rysujBlob(ktory) {
+    if (ktory.x==0) {
+        ktory.x=20+Math.floor(Math.random()*1100);
+    }
+    if (ktory.y<500) {
+        ktory.y+=10;
+        ktory.kill=0;
+    }
+    if (ktory.kierunek==blobD) {
+        if (ktory.nr<ktory.ilePoziomo)
+            ktory.nr++;
+            else 
+            ktory.x=0;
+    }
+    if (ktory.kierunek==blobP) {
+        if ((ktory.x<1100)&&(ktory.y>=500)) 
+            ktory.x+=ktory.predkosc;
+            else
+            ktory.kierunek=blobL;    
+        if ((ktory.nr<ktory.ilePoziomo-1)&&(ktory.y>=500))    
+            ktory.nr++;
+            else
+            ktory.nr=0;            
+    }
+    if (ktory.kierunek==blobL) {
+        if ((ktory.x>20)&&(ktory.y>=500)) 
+            ktory.x-=ktory.predkosc;
+            else
+            ktory.kierunek=blobP;
+        if ((ktory.nr<ktory.ilePoziomo-1)&&(ktory.y>=500))    
+            ktory.nr++;
+            else
+            ktory.nr=0;            
+    }
+    ctx.drawImage(ktory.kierunek, ktory.nr*ktory.szerokosc, 0, ktory.szerokosc, ktory.wysokosc, ktory.x, ktory.y, ktory.szerokosc, ktory.wysokosc);
+}    
+    
+function rysujPostac() {
+    if (postac.skok==1) {
+        if (postac.y<postac.pulapSkoku)
+            postac.y+=postac.wysokoscSkoku;
+            else
+            postac.skok=0;
+    }   
+    if ((postac.y>0)&&(postac.skok==0))
+        postac.y-=postac.wysokoscSkoku;
+    if (postac.kierunek==bohaterL) {
+        if (postac.x>20)
+            postac.x-=postac.szybkosc;
+            else
+            postac.kierunek=bohaterP;    
+        if (postac.nr==0)
+            postac.nr=postac.ile-1;
+            else
+            postac.nr--;
+    }
+    if (postac.kierunek==bohaterP) {
+        if (postac.x<1070)
+            postac.x+=postac.szybkosc; 
+            else
+            postac.kierunek=bohaterL;    
+        if (postac.nr==postac.ile-1)
+            postac.nr=0;
+            else    
+            postac.nr++;
+    }  
+    ctx.drawImage(postac.kierunek, postac.nr*postac.szerokosc, 0, postac.szerokosc, postac.wysokosc, postac.x, 440-postac.y, postac.szerokosc, postac.wysokosc);
+}    
+function odnowienieEnergii() {
+    console.log(energia11)
+    if (energia11 <= 0) {
+        postac.energia = 200;
+        energia11+=4000;
+    }
+} 
+function sprawdz(ktory) {
+    if (ktory.y>=500) 
+        if (((ktory.x>postac.x)&&(ktory.x<postac.x+postac.szerokosc))||((ktory.x+ktory.szerokosc>postac.x)&&(ktory.x+ktory.szerokosc<postac.x+postac.szerokosc)))
+            if (postac.y>(postac.pulapSkoku/2)) {
+                ktory.kierunek=blobD;
+                ktory.nr=0;
+                ktory.ilePoziomo=8;
+                ktory.szerokosc=72;
+                if ((ktory.kill!=1)&&(ktory.nr==0)&&(ktory.kierunek==blobD)) {
+                    gra.punkty+=100;
+                    energia11-=100;
+                    gra.blobow--;
+                }
+                ktory.kill=1;
+                
+            } else if (ktory.kill!=1) {    
+                postac.energia-=postac.spadekEnergia;
+            }        
+}    
+
+let wyswietlPoziom = true;
+let poziomWyswietlania = 0;
+const czasWyswietlaniaPoziomu = 800;
+let zmien_IMG = false;
+let default_IMG = tla[0];
+function Zmien_IMG() {
+  if (gra.poziom % 5 == 0 && !zmien_IMG) {
+    i++;
+    default_IMG = tla[i];
+    zmien_IMG = true; 
+  } else if (gra.poziom % 5 != 0) {
+    zmien_IMG = false;
+  }
+}
+function pasekStanu() {
+  var gradient = ctx.createLinearGradient(0, 0, canvas.width, 0);
+  gradient.addColorStop(0, "#FF00F0");
+  gradient.addColorStop(1, "#FFFF0F");
+
+  if (gra.blobow == 0) {
+    gra.poziom++;
+    gra.blobow = gra.poziom;
+    console.log(gra.poziom);
+    gra.generuj = 1;
+    wyswietlPoziom = true;
+    poziomWyswietlania = performance.now(); // Zapisanie aktualnego czasu
+  }
+
+  if (gra.generuj == 1) {
+    generujBloby(gra.blobow);
+    gra.generuj = 0;
+  }
+
+  if (postac.energia <= 0) {
+    animLoop.stop();
+    ctx.fillStyle = gradient;
+    ctx.font = "bold 100px pixel";
+    ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
+    ctx.shadowBlur = 5;
+    ctx.shadowOffsetX = 3;
+    ctx.shadowOffsetY = 3;
+    var text = "PRZEGRAŁEŚ!";
+    var textWidth = ctx.measureText(text).width;
+    var x = canvas.width / 2 - textWidth / 2;
+    var y = canvas.height / 2;
+    ctx.fillText(text, x, y);
+
+    var resetButton = document.createElement("button");
+    resetButton.innerHTML = "Reset";
+    resetButton.classList.add("reset-button");
+    resetButton.addEventListener("click", function() {
+    window.location.reload();
+    });
+    document.body.appendChild(resetButton);
+    } 
+    else if (gra.punkty >= 30000) {
+    animLoop.stop();
+    ctx.fillStyle = gradient;
+    ctx.font = "bold 100px pixel";
+    ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
+    ctx.shadowBlur = 5;
+    ctx.shadowOffsetX = 3;
+    ctx.shadowOffsetY = 3;
+    var text = "KONIEC GRY!";
+    var textWidth = ctx.measureText(text).width;
+    var x = canvas.width / 2 - textWidth / 2;
+    var y = canvas.height / 2;
+    ctx.fillText(text, x, y);
+
+    var resetButton = document.createElement("button");
+    resetButton.innerHTML = "Reset";
+    resetButton.classList.add("reset-button");
+    resetButton.addEventListener("click", function() {
+    window.location.reload(); // Odśwież stronę po kliknięciu przycisku reset
+    });
+    document.body.appendChild(resetButton);
+    } 
+    else {
+    ctx.fillStyle = "red";
+    ctx.fillRect(50, 60, postac.energia, 40);
+    ctx.strokeRect(50, 60, 200, 40);
+
+    if (wyswietlPoziom) {
+      ctx.fillStyle = gradient;
+      ctx.font = "bold 90px pixel";
+      ctx.shadowColor = "rgba(0, 0, 0, 0.5)";
+      ctx.shadowBlur = 5;
+      ctx.shadowOffsetX = 3;
+      ctx.shadowOffsetY = 3;
+      var text = "Poziom " + gra.poziom;
+      var textWidth = ctx.measureText(text).width;
+      var x = canvas.width / 2 - textWidth / 2;
+      var y = canvas.height / 2;
+      ctx.fillText(text, x, y);
+
+      if (performance.now() - poziomWyswietlania >= czasWyswietlaniaPoziomu) {
+        wyswietlPoziom = false;
+      }
+    }
+
+    if (gra.poziom >= 5) {
+      ctx.font = "bold 30px Arial";
+      ctx.strokeStyle = "black";
+      ctx.strokeText("Punkty: " + gra.punkty, 50, 140);
+    } else if (gra.poziom < 5) {
+      ctx.font = "bold 30px pixel";
+      ctx.strokeStyle = "black";
+      ctx.strokeText("Punkty: " + gra.punkty, 50, 140);
+    }
+  }
+}
+    
+function rysuj() {
+    odnowienieEnergii();
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    Zmien_IMG();
+    ctx.drawImage(default_IMG, tlo.x, 0, 1200, 675, 0, 0, 1200, 675);
+    rysujPostac();
+    for (element of blobTablica) {
+        rysujBlob(element);    
+        sprawdz(element);    
+    }
+    pasekStanu();
+}    
+    
+tlo1.addEventListener("load", () => {
+    animLoop = new AnimationFrame(30, rysuj);
+    animLoop.start();
+});
+  
+document.onkeydown = function(e) {
+				if (e.keyCode == 65) {      // klawisz "A"
+                    postac.kierunek=bohaterL;
+                } else if (e.keyCode == 68) {       // klawisz "D"
+                    postac.kierunek=bohaterP;
+                }  else if (e.keyCode == 87) {       // klawisz "w"                     
+                    if (postac.y==0)    
+                        postac.skok=1;
+                }   else if (e.keyCode == 83) {       // klawisz "s"                     
+
+                }
+			}
+                       
+</script>
+</body>
+</html>
