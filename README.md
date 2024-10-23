@@ -9,6 +9,7 @@
 - [Gameplay](#gameplay)
 - [Controls](#controls)
 - [License](#license)
+- [Design](#design)
 
 ## Features
 
@@ -75,7 +76,7 @@ To run **Blob-runner** locally, follow these steps:
 - Develop a mobile version of the game to expand its accessibility.
 - Optimize controls for touchscreens and smaller displays.
 
-#Design
+## Design
 
 ![Blob Runner](https://github.com/user-attachments/assets/9209b14f-767c-41c9-b3f5-5db56dfe6e88)
 
